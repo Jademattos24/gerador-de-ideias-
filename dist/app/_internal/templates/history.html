@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico - Gerador de Ideias{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <div class="history-header">
+        <h1>Histórico de Ideias</h1>
+        <p>Veja todos os temas que você já pesquisou e as ideias geradas</p>
+    </div>
+    
+    {% if histories %}
+    <div class="history-list">
+        {% for h in histories %}
+        <div class="history-card" data-id="{{ h.id }}">
+            <div class="history-card-header">
+                <div>
+                    <h3>{{ h.theme }}</h3>
+                    <span class="history-date">{{ h.created_at }}</span>
+                </div>
+                <div class="history-actions">
+                    <button class="btn btn-secondary btn-sm btn-view" data-id="{{ h.id }}">Ver Ideias</button>
+                    <button class="btn btn-danger btn-sm btn-delete" data-id="{{ h.id }}">Excluir</button>
+                </div>
+            </div>
+            
+            <div class="history-preview">
+                <div class="preview-item">
+                    <strong>Títulos:</strong> {{ h.titles[0] if h.titles else '' }}{% if h.titles|length > 1 %}...{% endif %}
+                </div>
+            </div>
+            
+            <div class="history-details" id="details-{{ h.id }}" style="display:none;">
+                <div class="results-grid">
+                    <section class="result-card">
+                        <h3>📝 Sugestões de Títulos</h3>
+                        <ul class="ideas-list">
+                            {% for title in h.titles %}
+                            <li class="idea-item">
+                                <span class="idea-text">{{ title }}</span>
+                                <button class="btn-copy" data-text="{{ title }}">Copiar</button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                    
+                    <section class="result-card">
+                        <h3>🎣 Ganchos (Hooks)</h3>
+                        <ul class="ideas-list">
+                            {% for hook in h.hooks %}
+                            <li class="idea-item">
+                                <span class="idea-text">{{ hook }}</span>
+                                <button class="btn-copy" data-text="{{ hook }}">Copiar</button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                    
+                    <section class="result-card">
+                        <h3>📢 Call to Action</h3>
+                        <ul class="ideas-list">
+                            {% for cta in h.ctas %}
+                            <li class="idea-item">
+                                <span class="idea-text">{{ cta }}</span>
+                                <button class="btn-copy" data-text="{{ cta }}">Copiar</button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                    
+                    <section class="result-card">
+                        <h3>📄 Descrições</h3>
+                        <ul class="ideas-list">
+                            {% for desc in h.descriptions %}
+                            <li class="idea-item">
+                                <span class="idea-text">{{ desc }}</span>
+                                <button class="btn-copy" data-text="{{ desc }}">Copiar</button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h3>Nenhum histórico ainda</h3>
+        <p>Gere suas primeiras ideias e elas aparecerão aqui</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Gerar Ideias</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle details
+    document.querySelectorAll('.btn-view').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const details = document.getElementById('details-' + id);
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                this.textContent = 'Ocultar';
+            } else {
+                details.style.display = 'none';
+                this.textContent = 'Ver Ideias';
+            }
+        });
+    });
+    
+    // Delete
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            if (!confirm('Tem certeza que deseja excluir este histórico?')) return;
+            
+            const id = this.getAttribute('data-id');
+            try {
+                const response = await fetch('/history/' + id + '/delete', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    document.querySelector(`.history-card[data-id="${id}"]`).remove();
+                    if (document.querySelectorAll('.history-card').length === 0) {
+                        location.reload();
+                    }
+                }
+            } catch (e) {
+                alert('Erro ao excluir');
+            }
+        });
+    });
+    
+    // Copy buttons
+    document.querySelectorAll('.btn-copy').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const text = this.getAttribute('data-text');
+            navigator.clipboard.writeText(text).then(() => {
+                const original = this.textContent;
+                this.textContent = '✓ Copiado!';
+                this.classList.add('copied');
+                setTimeout(() => {
+                    this.textContent = original;
+                    this.classList.remove('copied');
+                }, 1500);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Gerar Ideias - Gerador de Ideias{% endblock %}
+
+{% block content %}
+<div class="generator-container">
+    <div class="generator-header">
+        <h1>Gerador de Ideias de Conteúdo</h1>
+        <p>Digite um tema e receba títulos, ganchos, CTAs e descrições prontos para suas redes sociais</p>
+    </div>
+    
+    <div class="input-section">
+        <div class="input-wrapper">
+            <textarea 
+                id="theme-input" 
+                placeholder="Ex: marketing de afiliados, receitas veganas, produtividade, finanças pessoais..."
+                rows="3"
+                maxlength="150"
+            ></textarea>
+            <div class="input-actions">
+                <span class="char-count"><span id="char-count">0</span>/150</span>
+                <button id="generate-btn" class="btn btn-primary btn-generate">
+                    <span class="btn-text">✨ Gerar Ideias</span>
+                    <span class="btn-loading" style="display:none;">Gerando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="results" class="results-section" style="display:none;">
+        <div class="results-header">
+            <h2>Ideias para: <span id="result-theme"></span></h2>
+        </div>
+        
+        <div class="results-grid">
+            <section class="result-card">
+                <h3>📝 Sugestões de Títulos</h3>
+                <ul id="titles-list" class="ideas-list"></ul>
+            </section>
+            
+            <section class="result-card">
+                <h3>🎣 Ganchos (Hooks) para os Primeiros 3 Segundos</h3>
+                <ul id="hooks-list" class="ideas-list"></ul>
+            </section>
+            
+            <section class="result-card">
+                <h3>📢 Ideias de Call to Action</h3>
+                <ul id="ctas-list" class="ideas-list"></ul>
+            </section>
+            
+            <section class="result-card">
+                <h3>📄 Ideias de Descrição</h3>
+                <ul id="descriptions-list" class="ideas-list"></ul>
+            </section>
+        </div>
+    </div>
+    
+    <div id="empty-state" class="empty-state">
+        <div class="empty-icon">💡</div>
+        <h3>Pronto para criar conteúdo viral?</h3>
+        <p>Digite um tema acima e clique em Gerar Ideias</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const themeInput = document.getElementById('theme-input');
+    const charCount = document.getElementById('char-count');
+    const generateBtn = document.getElementById('generate-btn');
+    const results = document.getElementById('results');
+    const emptyState = document.getElementById('empty-state');
+    
+    themeInput.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+    
+    themeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            generateBtn.click();
+        }
+    });
+    
+    generateBtn.addEventListener('click', async function() {
+        const theme = themeInput.value.trim();
+        if (!theme) {
+            alert('Digite um tema para gerar ideias.');
+            return;
+        }
+        
+        const btnText = generateBtn.querySelector('.btn-text');
+        const btnLoading = generateBtn.querySelector('.btn-loading');
+        
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline';
+        generateBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ theme })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Erro ao gerar ideias');
+            }
+            
+            displayResults(data.theme, data.ideas);
+            
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+            generateBtn.disabled = false;
+        }
+    });
+    
+    function displayResults(theme, ideas) {
+        document.getElementById('result-theme').textContent = theme;
+        
+        populateList('titles-list', ideas.titles);
+        populateList('hooks-list', ideas.hooks);
+        populateList('ctas-list', ideas.ctas);
+        populateList('descriptions-list', ideas.descriptions);
+        
+        emptyState.style.display = 'none';
+        results.style.display = 'block';
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    function populateList(listId, items) {
+        const list = document.getElementById(listId);
+        list.innerHTML = '';
+        
+        items.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'idea-item';
+            li.innerHTML = `
+                <span class="idea-text">${escapeHtml(item)}</span>
+                <button class="btn-copy" data-text="${escapeHtml(item)}" title="Copiar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copiar
+                </button>
+            `;
+            list.appendChild(li);
+        });
+        
+        list.querySelectorAll('.btn-copy').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const text = this.getAttribute('data-text');
+                navigator.clipboard.writeText(text).then(() => {
+                    const original = this.innerHTML;
+                    this.innerHTML = '✓ Copiado!';
+                    this.classList.add('copied');
+                    setTimeout(() => {
+                        this.innerHTML = original;
+                        this.classList.remove('copied');
+                    }, 1500);
+                }).catch(() => {
+                    alert('Não foi possível copiar. Selecione o texto manualmente.');
+                });
+            });
+        });
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+});
+</script>
+{% endblock %}
