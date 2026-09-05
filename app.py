@@ -280,6 +280,11 @@ def webhook_kiwify():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        try:
+            db.session.execute(db.text('ALTER TABLE user ADD COLUMN is_premium BOOLEAN DEFAULT 0'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
     app.run(host='0.0.0.0', port=5000, debug=True)
 @app.route('/webhook/kiwify', methods=['POST'])
 def kiwify_webhook():
