@@ -281,3 +281,30 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=True)
+@app.route('/webhook/kiwify', methods=['POST'])
+def kiwify_webhook():
+    data = request.json
+    if not data:
+        return jsonify({"status": "error", "message": "No data received"}), 400
+
+    event_type = data.get('event')
+    customer = data.get('Customer', {})
+    email = customer.get('email')
+    
+    print(f"Webhook recebido da Kiwify: {event_type} para o e-mail {email}")
+
+    if event_type in ['subscription_canceled', 'subscription_expired', 'charge_back']:
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.is_premium = False
+            db.session.commit()
+            print(f"Usuário {email} desativado.")
+        
+    elif event_type in ['subscription_renewed', 'order_approved']:
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.is_premium = True
+            db.session.commit()
+            print(f"Usuário {email} ativado como premium.")
+
+    return jsonify({"status": "success"}), 200
