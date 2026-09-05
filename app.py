@@ -105,13 +105,17 @@ def generate_content_ideas(theme):
         'ctas': ctas,
         'descriptions': descriptions
     }
-
 @app.route('/')
 def index():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('index.html', user_name=session.get('user_name'))
+    
+    user = User.query.get(session.get('user_id'))
+    if user and user.email == "jademattosmafort3@gmail.com":
+        user.is_premium = True
+        db.session.commit()
 
+    return render_template('index.html', user_name=session.get('user_name'))
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if 'user_id' in session:
