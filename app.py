@@ -277,15 +277,23 @@ def webhook_kiwify():
             db.session.commit()
     return jsonify({"status": "received"}), 200
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        try:
-            db.session.execute(db.text('ALTER TABLE user ADD COLUMN is_premium BOOLEAN DEFAULT 0'))
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+with app.app_context():
+    db.create_all()
+    try:
+        db.session.execute(db.text('ALTER TABLE user ADD COLUMN is_premium BOOLEAN DEFAULT 0'))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+with app.app_context():
+    db.create_all()
+    try:
+        db.session.execute(db.text('ALTER TABLE user ADD COLUMN is_premium BOOLEAN DEFAULT 0'))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+
 @app.route('/webhook/kiwify', methods=['POST'])
 def kiwify_webhook():
     data = request.json
@@ -313,3 +321,5 @@ def kiwify_webhook():
             print(f"Usuário {email} ativado como premium.")
 
     return jsonify({"status": "success"}), 200
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
