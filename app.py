@@ -116,6 +116,7 @@ def index():
         db.session.commit()
 
     return render_template('index.html', user_name=session.get('user_name'))
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if 'user_id' in session:
