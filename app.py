@@ -135,6 +135,17 @@ def register():
             flash('As senhas não coincidem.', 'error')
             return render_template('register.html')
         
+  from flask import request, jsonify
+
+@app.route('/webhook/hotmart', methods=['POST'])
+
+            if user:
+                # Atualiza o status do usuário para Pro/Premium
+                user.is_premium = True
+                db.session.commit()
+                return jsonify({'status': 'success', 'message': 'Access granted'}), 200
+
+    return jsonify({'status': 'ignored'}), 200
         if len(password) < 6:
             flash('A senha deve ter pelo menos 6 caracteres.', 'error')
             return render_template('register.html')
@@ -323,7 +334,26 @@ def kiwify_webhook():
             user.is_premium = True
             db.session.commit()
             print(f"Usuário {email} ativado como premium.")
+@app.route('/webhook/hotmart', methods=['POST'])
+def hotmart_webhook():
+    dados = request.get_json()
+    if not dados:
+        return jsonify({'status': 'no data'}), 400
 
-    return jsonify({"status": "success"}), 200
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+@app.route('/webhook/hotmart', methods=['POST'])
+def hotmart_webhook():
+    dados = request.get_json()
+    if not dados:
+        return jsonify({'status': 'no data'}), 400
+
+    evento = dados.get('event')
+    if evento == 'PURCHASE_APPROVED':
+        email_comprador = dados.get('data', {}).get('buyer', {}).get('email')
+        if email_comprador:
+            user = User.query.filter_by(email=email_comprador).first()
+            if user:
+                user.is_premium = True
+                db.session.commit()
+                return jsonify({'status': 'success', 'message': 'Access granted'}), 200
+
+    return jsonify({'status': 'ignored'}), 200
