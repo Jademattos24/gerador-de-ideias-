@@ -318,14 +318,13 @@ def kiwify_webhook():
             user.is_premium = False
             db.session.commit()
             print(f"Usuário {email} desativado.")
-        
-    elif event_type in ['subscription_renewed', 'order_approved']:
-        user = User.query.filter_by(email=email).first()
-        if user:
-            user.is_premium = True
-            db.session.commit()
-            print(f"Usuário {email} ativado como premium.")
+@app.route('/webhook/hotmart', methods=['POST'])
+def hotmart_webhook():
+    dados = request.get_json()
+    if not dados:
+        return jsonify({'status': 'no data'}), 400
 
+    evento = dados.get('event')
     if evento == 'PURCHASE_APPROVED':
         email_comprador = dados.get('data', {}).get('buyer', {}).get('email')
         if email_comprador:
@@ -336,3 +335,4 @@ def kiwify_webhook():
                 return jsonify({'status': 'success', 'message': 'Access granted'}), 200
 
     return jsonify({'status': 'ignored'}), 200
+ 
