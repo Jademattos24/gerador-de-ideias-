@@ -125,38 +125,30 @@ def index():
     return render_template('index.html', user_name=session.get('user_name'))
 
 @app.route('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if 'user_id' in session:
         return redirect(url_for('index'))
+        
+    if request.method == 'POST':
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
-        confirm = request.form.get('confirm_password', '')
         
         if not name or not email or not password:
-            flash('Preencha todos os campos.', 'error')
-            return render_template('register.html')
-        
-        if password != confirm:
-            flash('As senhas não coincidem.', 'error')
-            return render_template('register.html')
-        
-
-        if len(password) < 6:
-            flash('A senha deve ter pelo menos 6 caracteres.', 'error')
-            return render_template('register.html')
-        
-        if User.query.filter_by(email=email).first():
-            flash('Este e-mail já está cadastrado.', 'error')
-            return render_template('register.html')
-        
-        user = User(
-            name=name,
-            email=email,
-            password_hash=generate_password_hash(password)
-        )
-        db.session.add(user)
+            return render_template('register.html', error="Preencha todos os campos!")
+            
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return render_template('register.html', error="E-mail já cadastrado!")
+            
+        new_user = User(name=name, email=email, password=password, is_premium=False)
+        db.session.add(new_user)
         db.session.commit()
+        
+        return redirect(url_for('login'))
+        
+  
         
         session['user_id'] = user.id
         session['user_name'] = user.name
