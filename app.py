@@ -106,14 +106,21 @@ def generate_content_ideas(theme):
         'descriptions': descriptions
     }
 @app.route('/')
+
 def index():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user = User.query.get(session.get('user_id'))
-    if user and user.email == "jademattosmafort3@gmail.com":
+    if not user:
+        return redirect(url_for('login'))
+
+    if user.email == "jademattosmafort3@gmail.com":
         user.is_premium = True
         db.session.commit()
+
+    if not user.is_premium:
+        return redirect('https://pay.hotmart.com/P107487785L')
 
     return render_template('index.html', user_name=session.get('user_name'))
 
@@ -121,8 +128,6 @@ def index():
 def register():
     if 'user_id' in session:
         return redirect(url_for('index'))
-    
-    if request.method == 'POST':
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
