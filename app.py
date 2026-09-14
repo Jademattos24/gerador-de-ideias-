@@ -141,14 +141,29 @@ def register():
         if existing_user:
             return render_template('register.html', error="E-mail já cadastrado!")
             
-        new_user = User(name=name, email=email, password=password, is_premium=False)
+  new_user = User(
+            name=name,
+            email=email,
+            password=password,
+            is_premium=False
+        )
+        db.session.add(new_user)
+        db.session.commit()
+new_user = User(
+            name=name,
+            email=email,
+            password=password,
+            is_premium=False
+        )
         db.session.add(new_user)
         db.session.commit()
         
         return redirect(url_for('login'))
         
     return render_template('register.html')
-            
+        return redirect(url_for('login'))
+        
+    return render_template('register.html')     
         
  
 
