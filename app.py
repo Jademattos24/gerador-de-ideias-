@@ -149,11 +149,6 @@ def register():
         
     return render_template('register.html')
             
-        new_user = User(name=name, email=email, password=password, is_premium=False)
-        db.session.add(new_user)
-        db.session.commit()
-        
-        return redirect(url_for('login'))
         
  
 
