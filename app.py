@@ -134,6 +134,16 @@ def register():
         user_exist = User.query.filter_by(email=email).first()
         if user_exist:
             return render_template('register.html', error="E-mail já cadastrado")
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+
+        user_exist = User.query.filter_by(email=email).first()
+        if user_exist:
+            return render_template('register.html', error="E-mail já cadastrado")
 
         new_user = User(
             name=name,
