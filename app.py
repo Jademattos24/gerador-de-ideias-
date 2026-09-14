@@ -125,7 +125,6 @@ def index():
     return render_template('index.html', user_name=session.get('user_name'))
 
 @app.route('/register', methods=['GET', 'POST'])
-@app.route('/register', methods=['GET', 'POST'])
 def register():
     if 'user_id' in session:
         return redirect(url_for('index'))
@@ -148,14 +147,15 @@ def register():
         
         return redirect(url_for('login'))
         
-  
-        
-        session['user_id'] = user.id
-        session['user_name'] = user.name
-        flash('Conta criada com sucesso!', 'success')
-        return redirect(url_for('index'))
-    
     return render_template('register.html')
+            
+        new_user = User(name=name, email=email, password=password, is_premium=False)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return redirect(url_for('login'))
+        
+ 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
