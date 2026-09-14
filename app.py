@@ -125,7 +125,6 @@ def index():
     return render_template('index.html', user_name=session.get('user_name'))
 
 @app.route('/register', methods=['GET', 'POST'])
-@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -147,7 +146,7 @@ def register():
         
         return redirect(url_for('login'))
 
-    return render_template('register.html')        
+    return render_template('register.html')
 @app.route('/logout')
 def logout():
     session.clear()
