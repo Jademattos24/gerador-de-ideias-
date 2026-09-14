@@ -125,23 +125,18 @@ def index():
     return render_template('index.html', user_name=session.get('user_name'))
 
 @app.route('/register', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    if 'user_id' in session:
-        return redirect(url_for('index'))
-        
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
-        
-        if not name or not email or not password:
-            return render_template('register.html', error="Preencha todos os campos!")
-            
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            return render_template('register.html', error="E-mail já cadastrado!")
-            
-  new_user = User(
+
+        user_exist = User.query.filter_by(email=email).first()
+        if user_exist:
+            return render_template('register.html', error="E-mail já cadastrado")
+
+        new_user = User(
             name=name,
             email=email,
             password=password,
@@ -149,25 +144,10 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
-return redirect(url_for('login'))
         
- 
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '')
-        
-        user = User.query.filter_by(email=email).first()
-        
-        if user and check_password_hash(user.password_hash, password):
-            session['user_id'] = user.id
-            session['user_name'] = user.name
-            flash('Login realizado com sucesso!', 'success')
-            return redirect(url_for('index'))
-        
-        flash('E-mail ou senha incorretos.', 'error')
-    
-    return render_template('login.html')
+        return redirect(url_for('login'))
 
+    return render_template('register.html')        
 @app.route('/logout')
 def logout():
     session.clear()
