@@ -303,4 +303,4 @@ def hotmart_webhook():
     return jsonify({'status': 'ignored'}), 200
  @app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+      return render_template('login.html')
