@@ -124,16 +124,9 @@ def index():
 
     return render_template('index.html', user_name=session.get('user_name'))
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '')
-
-        user_exist = User.query.filter_by(email=email).first()
-        if user_exist:
-            return render_template('register.html', error="E-mail já cadastrado")
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    return render_template('login.html')
 
         new_user = User(
             name=name,
